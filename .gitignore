@@ -29,6 +29,7 @@ Thumbs.db
 *.dll
 *.lib
 *.sbr
+*.ps1
 
 ######################
 # Windows
