@@ -11,7 +11,6 @@ var queueTodo = []
 var done = []
 var imageQueue = []
 var imageDone = []
-var savedImages = 0
 
 router.get("/:auction/:type", function(req, res, next) {
   var dlo = { a: req.params.auction, t: req.params.type }
