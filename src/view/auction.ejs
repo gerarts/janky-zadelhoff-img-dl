@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width">
+    <title>Auctions</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+      var artList = <%-JSON.stringify(data)%>
+    </script>
+</head>
+<body>
+<h1>UGLY IMAGE DOWNLOADER [Zadelhoff]</h1>
+<h3><a href="/">Back</a></h3>
+<h2>Auction</h2>
+<div style="position: relative; width: 100%; margin: 10px 0; height: 30px; line-height: 30px; color: white; background-color: darkblue;">
+  <div id="progress" style="position: relative; width: 0%; margin: 10px 0; height: 30px; line-height: 30px; color: white; background-color: limegreen;"></div>
+  <div style="width: 100%; position: absolute; top: 0; left: 0; height: 100%; text-align: center;">
+    <strong>Status: <span id="stat_text">Waiting for engine</span></strong>
+  </div>
+</div>
+<details>
+  <summary><strong>Download</strong></summary>
+  <ul>
+    <li><a href="javascript:void(0)" id="dl_all">Download all images (<%= data.length %> articles)</a></li>
+    <li><a href="javascript:void(0)" id="dl_alo">Download all with number (<%= numbered %> articles)</a></li>
+    <li>
+      <details>
+        <summary>Download all within section</summary>
+        From
+        <input id="dl_sec_low" style="width: 5em;" type="number" name="low" placeholder="<%= min %>" min="<%= min %>" max="<%= max %>" />
+        to
+        <input id="dl_sec_high" style="width: 5em;" type="number" name="high" placeholder="<%= max %>" min="<%= min %>" max="<%= max %>" />
+        <button id="dl_sec">Start</button>
+      </details>
+    </li>
+  </ul>
+</details>
+<% list = data.map(function(item) {
+  return '<li><a href="product/' + item.alo_auc_id + '/' + item.alo_id + '"><span style="width: 40px; display: inline-block;">' + item.alo_number + "</span>" + item.obj_short_description + '</a></li>'
+}) -%>
+<details>
+  <summary><strong>Articles (<%= data.length %>)</strong></summary>
+  <ul>
+    <%- list.join("") %>
+  </ul>
+</details>
+<script src="/scripts/dl.js"></script>
+</body>
+</html>
