@@ -16,6 +16,11 @@ router.get("/", function(req, res, next) {
   })
 })
 
+router.get("/quit", function(req, res) {
+  res.json("bye")
+  process.exit()
+})
+
 router.get("/auction/:id", function(req, res, next) {
   axios
     .get(

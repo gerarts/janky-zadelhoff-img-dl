@@ -9,6 +9,8 @@ var download = require("download-file")
 
 var queueTodo = []
 var done = []
+var imageQueue = []
+var imageDone = []
 var savedImages = 0
 
 router.get("/:auction/:type", function(req, res, next) {
@@ -35,15 +37,25 @@ router.post("/:id/:type", function(req, res, next) {
 })
 
 router.get("/stat", function(req, res, next) {
-  if (queueTodo.length === 0) {
+  if (queueTodo.length === 0 && imageQueue.length === 0) {
     res.json({ status: "done" })
   } else {
     res.json({
       todo: queueTodo.length,
       done: done.length,
-      total: queueTodo.length + done.length
+      total: queueTodo.length + done.length,
+      imageQueue: imageQueue.length,
+      imageDone: imageDone.length,
+      imageTotal: imageQueue.length + imageDone.length
     })
   }
+  next()
+})
+
+router.get("/stop", function(req, res, next) {
+  if (queueTodo.length > 0) queueTodo = [queueTodo.pop()]
+  if (imageQueue.length > 0) imageQueue = [imageQueue.pop()]
+  res.json("ok")
   next()
 })
 
@@ -84,7 +96,7 @@ var dl = function(dlo, cb) {
         cb({ status: "ok", amount: set.length })
         setTimeout(step, 50)
       })
-      .catch(function(e) {
+      .catch(function() {
         cb({ status: "fail" })
       })
   }
@@ -103,52 +115,67 @@ var step = function() {
     )
     .then(function(data) {
       // Save images
-      var d = data.data
-      dlWrapper(d.alo_number || "cat", d.obj_barcode, d.alo_images, function() {
-        // Step through
-        done.push(queueTodo.pop())
-        if (queueTodo.length === 0) {
-          queueTodo = []
-          done = []
+      var index = 1
+      for (var i in data.data.alo_images) {
+        var im = data.data.alo_images[i]
+        var path = ""
+        var ext = (im.original || im.large || im.medium || im.small || im.tiny)
+          .split(".")
+          .pop()
+        if (im.is_key_image) {
+          path = data.data.obj_barcode + "." + ext
         } else {
-          step()
+          index++
+          path = data.data.obj_barcode + "_" + index + "." + ext
         }
-      })
+        imageQueue.push({
+          no: data.data.alo_number || "unlisted",
+          barcode: data.data.obj_barcode,
+          filename: path,
+          source:
+            "https://www.vanzadelhoff.nl/portal/" +
+            (im.original || im.large || im.medium || im.small || im.tiny)
+        })
+      }
+
+      // DeQueue
+      done.push(queueTodo.pop())
+
+      if (queueTodo.length > 0) {
+        step()
+      } else {
+        queueTodo = []
+        done = []
+        stepImage()
+      }
+    })
+    .catch(function() {
+      step()
     })
 }
 
-var dlWrapper = function(no, bc, array, callback) {
-  if (array.length === 0) {
-    callback()
-  } else {
-    savedImages++
-    var dlNext = array.pop()
-    var path =
-      dlNext.original ||
-      dlNext.large ||
-      dlNext.medium ||
-      dlNext.small ||
-      dlNext.tiny
-    var ext = path.split(".").pop()
-    var filename = bc + "." + ext
-    if (path.split("_").length > 1) {
-      var imgno = path
-        .split("_")
-        .pop()
-        .split(".")
-      filename = bc + "_" + imgno[0] + "." + ext
-    }
-    download(
-      "https://www.vanzadelhoff.nl/portal/" + path,
-      {
-        directory: "./target/" + no + "_" + bc + "/",
-        filename: filename
-      },
-      function() {
-        dlWrapper(no, bc, array, callback)
+var stepImage = function() {
+  // Peek
+  var c = imageQueue[imageQueue.length - 1]
+
+  download(
+    c.source,
+    {
+      directory: "./target/" + c.no + "_" + c.barcode + "/",
+      filename: c.filename
+    },
+    function() {
+      // DeQueue
+      imageDone.push(imageQueue.pop())
+
+      if (imageQueue.length > 0) {
+        stepImage()
+      } else {
+        imageQueue = []
+        imageDone = []
       }
-    )
-  }
+    }
+  )
 }
 
 module.exports = router

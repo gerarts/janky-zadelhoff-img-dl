@@ -4,7 +4,7 @@ out/
 coverage/
 public/swagger-ui/
 bundle.js
-
+target/
 #ignore thumbnails created by windows
 Thumbs.db
 
