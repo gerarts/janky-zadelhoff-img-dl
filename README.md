@@ -4,7 +4,9 @@
 
 * Install `node` (Latest LTS version)
 * Install `yarn`
-* From a command prompt run `yarn` to install dependencies
+* Download this repository
+* Open the repository in a command prompt
+* Run `yarn` from command prompt to install dependencies
 
 ## Usage
 
