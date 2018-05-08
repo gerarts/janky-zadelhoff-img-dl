@@ -7,10 +7,11 @@ $(document).ready(function() {
   $("#dl_all").click(download("all"))
   $("#dl_alo").click(download("alo"))
   $("#dl_sec").click(download("sec"))
+  $("#dl_sec_single_get").click(download("sec", true))
   $("#dl_stop").click(stop)
 })
 
-function download(type) {
+function download(type, single) {
   return function() {
     var url = window.location.href.split("/")
     var auc = url[url.length - 1]
@@ -23,10 +24,19 @@ function download(type) {
         })
         break
       case "sec":
-        $.post("/download/" + auc + "/" + type, {
-          low: $("#dl_sec_low").val(),
-          high: $("#dl_sec_high").val()
-        }).done(function() {
+        var values = {}
+        if (single) {
+          values = {
+            low: $("#dl_sec_single").val(),
+            high: $("#dl_sec_single").val()
+          }
+        } else {
+          values = {
+            low: $("#dl_sec_low").val(),
+            high: $("#dl_sec_high").val()
+          }
+        }
+        $.post("/download/" + auc + "/" + type, values).done(function() {
           setTimeout(stat, 2000)
           stat()
         })
